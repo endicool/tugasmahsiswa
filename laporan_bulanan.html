@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laporan Bulanan — LaundryPro</title>
+  <link rel="stylesheet" href="css/laporan.css" />
+</head>
+<body>
+
+  <!-- ===================================================
+       SIDEBAR
+       =================================================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <img src="assets/images/laundry-logo.svg" alt="Logo" width="28" height="28" />
+      </div>
+      <div>
+        <div class="logo-text">LaundryPro</div>
+        <span class="logo-sub">Sistem Manajemen Laundry</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        Beranda
+      </a>
+
+      <a href="tambah_transaksi.html" class="nav-item">
+        <span class="nav-icon">➕</span>
+        Tambah Transaksi
+      </a>
+
+      <a href="daftar_antrean.html" class="nav-item">
+        <span class="nav-icon">📋</span>
+        Daftar Antrean
+        <span class="nav-badge">5</span>
+      </a>
+
+      <a href="laporan_bulanan.html" class="nav-item active">
+        <span class="nav-icon">📊</span>
+        Laporan Bulanan
+      </a>
+
+      <a href="panduan_layanan.html" class="nav-item">
+        <span class="nav-icon">📖</span>
+        Panduan Layanan
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      LaundryPro v1.0 &copy; 2025<br />Kelompok Praktikum
+    </div>
+  </aside>
+
+  <!-- ===================================================
+       MAIN WRAPPER
+       =================================================== -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-left">
+        <button class="btn-icon" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
+        <div>
+          <div class="header-title">Laporan Bulanan</div>
+          <div class="header-breadcrumb">
+            <a href="index.html" style="color:inherit;text-decoration:none;">Beranda</a>
+            ›
+            <span>Laporan Bulanan</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn-icon" title="Notifikasi" onclick="alert('Tidak ada notifikasi baru.')">🔔</button>
+        <button class="btn-icon" title="Pengaturan" onclick="alert('Halaman pengaturan belum tersedia.')">⚙️</button>
+        <div class="avatar" title="Admin">AD</div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+
+      <!-- ── Page Header ── -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">📊 Rekap Keuangan Bulanan</div>
+          <div class="page-desc">Ringkasan pemasukan, pengeluaran, dan laba usaha laundry per bulan</div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak</button>
+          <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
+          <button class="btn btn-primary" onclick="refreshData()">🔄 Perbarui</button>
+        </div>
+      </div>
+
+      <!-- ── Alert Info ── -->
+      <div class="alert alert-info">
+        <span class="alert-icon">ℹ️</span>
+        <div class="alert-body">
+          <strong>Data bulan Juni 2025.</strong>
+          Laporan ini menampilkan rekap otomatis dari seluruh transaksi yang telah dicatat. Pastikan semua transaksi sudah diinput sebelum mencetak laporan akhir bulan.
+        </div>
+      </div>
+
+      <!-- ── Filter Bar ── -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">📅 Bulan:</span>
+          <select class="form-select" id="filterBulan" onchange="updatePeriod()">
+            <option value="1">Januari</option>
+            <option value="2">Februari</option>
+            <option value="3">Maret</option>
+            <option value="4">April</option>
+            <option value="5">Mei</option>
+            <option selected value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">Agustus</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Desember</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Tahun:</span>
+          <select class="form-select" id="filterTahun" onchange="updatePeriod()">
+            <option value="2024">2024</option>
+            <option selected value="2025">2025</option>
+          </select>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-label">Tampilkan:</span>
+          <select class="form-select" id="filterJenis">
+            <option value="semua">Semua Transaksi</option>
+            <option value="pemasukan">Pemasukan Saja</option>
+            <option value="pengeluaran">Pengeluaran Saja</option>
+          </select>
+        </div>
+        <div style="margin-left:auto;">
+          <span id="periodLabel" style="font-size:13px;font-weight:700;color:var(--primary);">
+            📆 Juni 2025
+          </span>
+        </div>
+      </div>
+
+      <!-- ── KPI Cards ── -->
+      <div class="kpi-grid">
+
+        <div class="kpi-card blue">
+          <div class="kpi-header">
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-badge up">▲ 12%</div>
+          </div>
+          <div class="kpi-value" id="kpiPemasukan">Rp 4.750.000</div>
+          <div class="kpi-label">Total Pemasukan</div>
+          <div class="kpi-sub">📦 97 transaksi bulan ini</div>
+        </div>
+
+        <div class="kpi-card green">
+          <div class="kpi-header">
+            <div class="kpi-icon">📈</div>
+            <div class="kpi-badge up">▲ 8%</div>
+          </div>
+          <div class="kpi-value" id="kpiLaba">Rp 3.190.000</div>
+          <div class="kpi-label">Laba Bersih</div>
+          <div class="kpi-sub">✅ Margin 67,2%</div>
+        </div>
+
+        <div class="kpi-card orange">
+          <div class="kpi-header">
+            <div class="kpi-icon">🧾</div>
+            <div class="kpi-badge down">▼ 3%</div>
+          </div>
+          <div class="kpi-value" id="kpiPengeluaran">Rp 1.560.000</div>
+          <div class="kpi-label">Total Pengeluaran</div>
+          <div class="kpi-sub">🧺 Deterjen, listrik, dll.</div>
+        </div>
+
+        <div class="kpi-card red">
+          <div class="kpi-header">
+            <div class="kpi-icon">👕</div>
+            <div class="kpi-badge up">▲ 5%</div>
+          </div>
+          <div class="kpi-value" id="kpiOrder">97</div>
+          <div class="kpi-label">Total Order</div>
+          <div class="kpi-sub">⭐ Rata-rata Rp 48.969/order</div>
+        </div>
+
+      </div>
+
+      <!-- ── Chart + Donut Grid ── -->
+      <div class="content-grid">
+
+        <!-- Bar Chart Mingguan -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon">
+                <img src="assets/images/chart-icon.svg" alt="" width="18" height="18" />
+              </div>
+              Grafik Pemasukan vs Pengeluaran (per Minggu)
+            </div>
+            <span class="card-action" onclick="alert('Fitur detail grafik akan segera hadir.')">Lihat detail →</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-bars" id="barChart">
+              <!-- Bars rendered by JS -->
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-dot income"></div> Pemasukan</div>
+              <div class="legend-item"><div class="legend-dot expense"></div> Pengeluaran</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donut Chart Kategori -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon">🥧</div>
+              Komposisi Layanan
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap">
+              <div class="donut-chart">
+                <svg class="donut-svg" width="150" height="150" viewBox="0 0 150 150">
+                  <circle cx="75" cy="75" r="55" fill="none" stroke="#f1f5f9" stroke-width="20"/>
+                  <!-- Cuci Kering 45% -->
+                  <circle cx="75" cy="75" r="55" fill="none" stroke="#1a6fd4" stroke-width="20"
+                    stroke-dasharray="155.5 345.6" stroke-dashoffset="0"/>
+                  <!-- Cuci Setrika 30% -->
+                  <circle cx="75" cy="75" r="55" fill="none" stroke="#0ec4a8" stroke-width="20"
+                    stroke-dasharray="103.7 345.6" stroke-dashoffset="-155.5"/>
+                  <!-- Express 15% -->
+                  <circle cx="75" cy="75" r="55" fill="none" stroke="#f97316" stroke-width="20"
+                    stroke-dasharray="51.8 345.6" stroke-dashoffset="-259.2"/>
+                  <!-- Lainnya 10% -->
+                  <circle cx="75" cy="75" r="55" fill="none" stroke="#e2e8f0" stroke-width="20"
+                    stroke-dasharray="34.6 345.6" stroke-dashoffset="-311"/>
+                </svg>
+                <div class="donut-center">
+                  <div class="donut-center-value">97</div>
+                  <div class="donut-center-label">Order</div>
+                </div>
+              </div>
+              <div class="donut-legend">
+                <div class="donut-legend-item">
+                  <div class="donut-legend-left">
+                    <div class="donut-legend-dot" style="background:#1a6fd4"></div>
+                    <span class="donut-legend-name">Cuci Kering</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="donut-legend-val">44</span>
+                    <span class="donut-legend-pct">45%</span>
+                  </div>
+                </div>
+                <div class="donut-legend-item">
+                  <div class="donut-legend-left">
+                    <div class="donut-legend-dot" style="background:#0ec4a8"></div>
+                    <span class="donut-legend-name">Cuci + Setrika</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="donut-legend-val">29</span>
+                    <span class="donut-legend-pct">30%</span>
+                  </div>
+                </div>
+                <div class="donut-legend-item">
+                  <div class="donut-legend-left">
+                    <div class="donut-legend-dot" style="background:#f97316"></div>
+                    <span class="donut-legend-name">Express (1 hari)</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="donut-legend-val">15</span>
+                    <span class="donut-legend-pct">15%</span>
+                  </div>
+                </div>
+                <div class="donut-legend-item">
+                  <div class="donut-legend-left">
+                    <div class="donut-legend-dot" style="background:#e2e8f0"></div>
+                    <span class="donut-legend-name">Lainnya</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="donut-legend-val">9</span>
+                    <span class="donut-legend-pct">10%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Progress per Layanan ── -->
+      <div class="content-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><div class="card-icon">🎯</div> Target vs Realisasi</div>
+          </div>
+          <div class="card-body">
+            <div class="progress-list">
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">💰 Pemasukan</span>
+                  <span class="progress-val">Rp 4.750.000 / Rp 5.000.000</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:95%;background:linear-gradient(90deg,#1a6fd4,#0ec4a8);"></div>
+                </div>
+                <div class="progress-sub">95% dari target — ✅ Hampir tercapai</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">📦 Jumlah Order</span>
+                  <span class="progress-val">97 / 100 order</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:97%;background:linear-gradient(90deg,#22c55e,#4ade80);"></div>
+                </div>
+                <div class="progress-sub">97% dari target — ✅ Sangat baik</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">🧾 Efisiensi Biaya</span>
+                  <span class="progress-val">Rp 1.560.000 / Rp 2.000.000</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:78%;background:linear-gradient(90deg,#f97316,#fb923c);"></div>
+                </div>
+                <div class="progress-sub">78% dari batas — ✅ Hemat 22%</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">⭐ Kepuasan Pelanggan</span>
+                  <span class="progress-val">4.8 / 5.0</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:96%;background:linear-gradient(90deg,#eab308,#fbbf24);"></div>
+                </div>
+                <div class="progress-sub">96% — ✅ Sangat memuaskan</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><div class="card-icon">💡</div> Ringkasan Pengeluaran</div>
+          </div>
+          <div class="card-body">
+            <div class="progress-list">
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">🧴 Deterjen & Bahan</span>
+                  <span class="progress-val">Rp 620.000</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:40%;background:#ef4444;"></div>
+                </div>
+                <div class="progress-sub">40% dari total pengeluaran</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">⚡ Listrik & Air</span>
+                  <span class="progress-val">Rp 450.000</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:29%;background:#f97316;"></div>
+                </div>
+                <div class="progress-sub">29% dari total pengeluaran</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">👷 Tenaga Kerja</span>
+                  <span class="progress-val">Rp 350.000</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:22%;background:#8b5cf6;"></div>
+                </div>
+                <div class="progress-sub">22% dari total pengeluaran</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-name">🔧 Perawatan Mesin</span>
+                  <span class="progress-val">Rp 140.000</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width:9%;background:#0ec4a8;"></div>
+                </div>
+                <div class="progress-sub">9% dari total pengeluaran</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tabel Rincian Transaksi ── -->
+      <div class="card full-row">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-icon">📋</div>
+            Rincian Transaksi Bulan Juni 2025
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input class="form-input" type="text" placeholder="🔍 Cari transaksi..." id="searchInput" oninput="filterTable()" style="width:200px;" />
+            <span class="card-action" onclick="alert('Export sedang diproses...')">Export →</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="transaksiTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tanggal</th>
+                <th>Keterangan</th>
+                <th>Kategori</th>
+                <th>Jenis</th>
+                <th class="td-center">Qty (kg)</th>
+                <th>Jumlah</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td class="td-mono">001</td>
+                <td>01 Jun 2025</td>
+                <td class="td-bold">Cuci Kering — Andi S.</td>
+                <td><span class="badge badge-blue">Cuci Kering</span></td>
+                <td><span class="badge badge-success">Pemasukan</span></td>
+                <td class="td-center">3 kg</td>
+                <td class="td-income td-mono">+ Rp 45.000</td>
+                <td><span class="badge badge-success">✅ Lunas</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">002</td>
+                <td>02 Jun 2025</td>
+                <td class="td-bold">Cuci + Setrika — Budi R.</td>
+                <td><span class="badge badge-blue">Cuci Setrika</span></td>
+                <td><span class="badge badge-success">Pemasukan</span></td>
+                <td class="td-center">5 kg</td>
+                <td class="td-income td-mono">+ Rp 90.000</td>
+                <td><span class="badge badge-success">✅ Lunas</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">003</td>
+                <td>02 Jun 2025</td>
+                <td class="td-bold">Pembelian Deterjen Cair</td>
+                <td><span class="badge badge-muted">Operasional</span></td>
+                <td><span class="badge badge-danger">Pengeluaran</span></td>
+                <td class="td-center">—</td>
+                <td class="td-expense td-mono">− Rp 120.000</td>
+                <td><span class="badge badge-success">✅ Dibayar</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">004</td>
+                <td>03 Jun 2025</td>
+                <td class="td-bold">Express 1 Hari — Citra N.</td>
+                <td><span class="badge" style="background:#fff4ed;color:#c2410c;">Express</span></td>
+                <td><span class="badge badge-success">Pemasukan</span></td>
+                <td class="td-center">2 kg</td>
+                <td class="td-income td-mono">+ Rp 50.000</td>
+                <td><span class="badge badge-success">✅ Lunas</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">005</td>
+                <td>05 Jun 2025</td>
+                <td class="td-bold">Cuci Kering — Dewi P.</td>
+                <td><span class="badge badge-blue">Cuci Kering</span></td>
+                <td><span class="badge badge-success">Pemasukan</span></td>
+                <td class="td-center">4 kg</td>
+                <td class="td-income td-mono">+ Rp 60.000</td>
+                <td><span class="badge badge-warning">⏳ Proses</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">006</td>
+                <td>06 Jun 2025</td>
+                <td class="td-bold">Tagihan Listrik Bulan Juni</td>
+                <td><span class="badge badge-muted">Operasional</span></td>
+                <td><span class="badge badge-danger">Pengeluaran</span></td>
+                <td class="td-center">—</td>
+                <td class="td-expense td-mono">− Rp 250.000</td>
+                <td><span class="badge badge-success">✅ Dibayar</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">007</td>
+                <td>07 Jun 2025</td>
+                <td class="td-bold">Cuci + Setrika — Eko F.</td>
+                <td><span class="badge badge-blue">Cuci Setrika</span></td>
+                <td><span class="badge badge-success">Pemasukan</span></td>
+                <td class="td-center">6 kg</td>
+                <td class="td-income td-mono">+ Rp 108.000</td>
+                <td><span class="badge badge-success">✅ Lunas</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">008</td>
+                <td>08 Jun 2025</td>
+                <td class="td-bold">Cuci Kering — Fajar M.</td>
+                <td><span class="badge badge-blue">Cuci Kering</span></td>
+                <td><span class="badge badge-success">Pemasukan</span></td>
+                <td class="td-center">2.5 kg</td>
+                <td class="td-income td-mono">+ Rp 37.500</td>
+                <td><span class="badge badge-success">✅ Lunas</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">009</td>
+                <td>10 Jun 2025</td>
+                <td class="td-bold">Servis Mesin Cuci</td>
+                <td><span class="badge badge-muted">Perawatan</span></td>
+                <td><span class="badge badge-danger">Pengeluaran</span></td>
+                <td class="td-center">—</td>
+                <td class="td-expense td-mono">− Rp 140.000</td>
+                <td><span class="badge badge-success">✅ Dibayar</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">010</td>
+                <td>12 Jun 2025</td>
+                <td class="td-bold">Express 1 Hari — Gita S.</td>
+                <td><span class="badge" style="background:#fff4ed;color:#c2410c;">Express</span></td>
+                <td><span class="badge badge-success">Pemasukan</span></td>
+                <td class="td-center">3 kg</td>
+                <td class="td-income td-mono">+ Rp 75.000</td>
+                <td><span class="badge badge-success">✅ Lunas</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">...</td>
+                <td colspan="6" style="color:var(--text-muted);font-style:italic;">
+                  + 87 transaksi lainnya (tampilkan semua dengan klik Export)
+                </td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table Footer / Summary -->
+        <div style="padding:16px 22px;background:var(--surface-2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div style="font-size:13px;color:var(--text-muted);">
+            Menampilkan <strong style="color:var(--text-primary);">10</strong> dari <strong style="color:var(--text-primary);">97</strong> transaksi
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <div style="font-size:13px;">
+              Total Pemasukan: <strong class="td-income td-mono">+ Rp 4.750.000</strong>
+            </div>
+            <div style="font-size:13px;">
+              Total Pengeluaran: <strong class="td-expense td-mono">− Rp 1.560.000</strong>
+            </div>
+            <div style="font-size:13px;">
+              Laba Bersih: <strong style="color:var(--primary);font-family:'DM Mono',monospace;font-weight:700;">Rp 3.190.000</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /.main-wrapper -->
+
+  <!-- ===================================================
+       JAVASCRIPT
+       =================================================== -->
+  <script>
+    // ── Sidebar Toggle ──
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // ── Render Bar Chart ──
+    const weekData = [
+      { label: 'Mgg 1', income: 1100000, expense: 370000 },
+      { label: 'Mgg 2', income: 1350000, expense: 420000 },
+      { label: 'Mgg 3', income: 1200000, expense: 380000 },
+      { label: 'Mgg 4', income: 1100000, expense: 390000 },
+    ];
+    const maxVal = Math.max(...weekData.flatMap(d => [d.income, d.expense]));
+
+    function renderBars() {
+      const container = document.getElementById('barChart');
+      container.innerHTML = '';
+      weekData.forEach(d => {
+        const incomeH = Math.round((d.income / maxVal) * 160);
+        const expenseH = Math.round((d.expense / maxVal) * 160);
+        container.innerHTML += `
+          <div class="bar-group">
+            <div class="bar-stack">
+              <div class="bar income" style="height:${incomeH}px;"
+                title="Pemasukan ${d.label}: Rp ${d.income.toLocaleString('id-ID')}"></div>
+              <div class="bar expense" style="height:${expenseH}px;"
+                title="Pengeluaran ${d.label}: Rp ${d.expense.toLocaleString('id-ID')}"></div>
+            </div>
+            <div class="bar-label">${d.label}</div>
+          </div>
+        `;
+      });
+    }
+    renderBars();
+
+    // ── Update Period Label ──
+    const bulanNames = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    function updatePeriod() {
+      const b = document.getElementById('filterBulan').value;
+      const t = document.getElementById('filterTahun').value;
+      document.getElementById('periodLabel').textContent = `📆 ${bulanNames[b]} ${t}`;
+    }
+
+    // ── Search / Filter Table ──
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const rows = document.querySelectorAll('#tableBody tr');
+      rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+
+    // ── Export CSV ──
+    function exportCSV() {
+      const rows = [
+        ['No','Tanggal','Keterangan','Kategori','Jenis','Qty','Jumlah','Status'],
+        ['001','01 Jun 2025','Cuci Kering — Andi S.','Cuci Kering','Pemasukan','3 kg','45000','Lunas'],
+        ['002','02 Jun 2025','Cuci + Setrika — Budi R.','Cuci Setrika','Pemasukan','5 kg','90000','Lunas'],
+        ['003','02 Jun 2025','Pembelian Deterjen Cair','Operasional','Pengeluaran','-','120000','Dibayar'],
+        ['004','03 Jun 2025','Express 1 Hari — Citra N.','Express','Pemasukan','2 kg','50000','Lunas'],
+        ['005','05 Jun 2025','Cuci Kering — Dewi P.','Cuci Kering','Pemasukan','4 kg','60000','Proses'],
+        ['006','06 Jun 2025','Tagihan Listrik Bulan Juni','Operasional','Pengeluaran','-','250000','Dibayar'],
+        ['007','07 Jun 2025','Cuci + Setrika — Eko F.','Cuci Setrika','Pemasukan','6 kg','108000','Lunas'],
+        ['008','08 Jun 2025','Cuci Kering — Fajar M.','Cuci Kering','Pemasukan','2.5 kg','37500','Lunas'],
+        ['009','10 Jun 2025','Servis Mesin Cuci','Perawatan','Pengeluaran','-','140000','Dibayar'],
+        ['010','12 Jun 2025','Express 1 Hari — Gita S.','Express','Pemasukan','3 kg','75000','Lunas'],
+      ];
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'laporan_juni_2025.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ── Refresh ──
+    function refreshData() {
+      const btn = event.target;
+      btn.textContent = '⏳ Memuat...';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = '🔄 Perbarui';
+        btn.disabled = false;
+        alert('✅ Data berhasil diperbarui!');
+      }, 1200);
+    }
+  </script>
+
+</body>
+</html>
