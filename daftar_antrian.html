@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daftar Antrian — Laundry Bersih</title>
+  <link rel="stylesheet" href="css/panduan.css" />
+  <link rel="icon" href="assets/images/queue-icon.svg" type="image/svg+xml" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════
+       SIDEBAR NAVIGASI
+  ═══════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-logo">
+      <div class="logo-icon">🧺</div>
+      <div class="logo-text">
+        <h2>Laundry Bersih</h2>
+        <span>Management System</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <p class="nav-label">Menu Utama</p>
+
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        Dashboard
+      </a>
+
+      <a href="tambah_transaksi.html" class="nav-item">
+        <span class="nav-icon">➕</span>
+        Tambah Transaksi
+      </a>
+
+      <a href="daftar_antrean.html" class="nav-item active">
+        <span class="nav-icon">📋</span>
+        Daftar Antrian
+        <span class="nav-badge" id="sidebarBadge">8</span>
+      </a>
+
+      <p class="nav-label">Laporan & Info</p>
+
+      <a href="laporan_bulanan.html" class="nav-item">
+        <span class="nav-icon">📊</span>
+        Laporan Bulanan
+      </a>
+
+      <a href="panduan_layanan.html" class="nav-item">
+        <span class="nav-icon">📖</span>
+        Panduan Layanan
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div>v1.0.0 &bull; © 2025 Laundry Bersih</div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════ -->
+  <div class="main-wrapper">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <h1>📋 Daftar Antrian</h1>
+        <p>Kelola antrian pelanggan laundry hari ini</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-icon" title="Refresh" onclick="refreshData()">🔄</button>
+        <button class="btn-icon" title="Cetak Antrian" onclick="cetakAntrian()">🖨️</button>
+        <div class="avatar">AD</div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- HERO BANNER -->
+      <img src="assets/images/laundry-hero.svg" alt="Laundry Bersih Banner" class="hero-img" style="max-height:160px; object-fit:cover;" />
+
+      <!-- STATISTIK RINGKASAN -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon blue">📋</div>
+          <div class="stat-info">
+            <h3 id="statTotal">8</h3>
+            <p>Total Antrian</p>
+            <span class="trend up">▲ 3 dari kemarin</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">⏳</div>
+          <div class="stat-info">
+            <h3 id="statMenunggu">3</h3>
+            <p>Menunggu</p>
+            <span class="trend" style="color:var(--warning)">● Perlu dipanggil</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue" style="background:#E0F7FA">⚙️</div>
+          <div class="stat-info">
+            <h3 id="statProses">3</h3>
+            <p>Sedang Diproses</p>
+            <span class="trend" style="color:var(--info)">● Berjalan</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <h3 id="statSelesai">2</h3>
+            <p>Selesai</p>
+            <span class="trend up">▲ Siap diambil</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOLBAR DAN TABEL ANTRIAN -->
+      <div class="queue-card">
+
+        <!-- Section Header -->
+        <div style="padding: 18px 22px 14px; border-bottom: 1px solid var(--border);">
+          <div class="section-header">
+            <span class="section-title">Daftar Antrian Pelanggan</span>
+            <div class="controls-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Cari nama / no. antrian…" oninput="filterTable()" />
+              </div>
+              <select class="filter-select" id="filterStatus" onchange="filterTable()">
+                <option value="">Semua Status</option>
+                <option value="menunggu">⏳ Menunggu</option>
+                <option value="diproses">⚙️ Diproses</option>
+                <option value="selesai">✅ Selesai</option>
+                <option value="diambil">📦 Diambil</option>
+              </select>
+              <select class="filter-select" id="filterLayanan" onchange="filterTable()">
+                <option value="">Semua Layanan</option>
+                <option value="Reguler">Reguler</option>
+                <option value="Express">Express</option>
+                <option value="Kiloan">Kiloan</option>
+                <option value="Premium">Premium</option>
+              </select>
+              <button class="btn btn-primary" onclick="openModal()">
+                ➕ Tambah Antrian
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+          <table id="queueTable">
+            <thead>
+              <tr>
+                <th>No. Antrian</th>
+                <th>Pelanggan</th>
+                <th>Layanan</th>
+                <th>Berat (kg)</th>
+                <th>Masuk</th>
+                <th>Est. Selesai</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="queueBody">
+              <!-- Data diisi via JavaScript -->
+            </tbody>
+          </table>
+
+          <div id="emptyState" class="empty-state" style="display:none;">
+            <img src="assets/images/empty-queue.svg" alt="Kosong" style="width:160px; margin-bottom:8px;" />
+            <p>Tidak ada antrian yang cocok dengan filter Anda.</p>
+          </div>
+        </div>
+
+        <!-- Table Footer -->
+        <div style="padding:12px 22px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--bg);">
+          <span style="font-size:.78rem; color:var(--text-muted);" id="tableInfo">Menampilkan 8 dari 8 antrian</span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span style="font-size:.78rem; color:var(--text-muted);">Terakhir diperbarui: <span id="lastUpdate"></span></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTTOM ROW: Next Call + Summary -->
+      <div class="bottom-row">
+
+        <!-- NEXT CALL -->
+        <div class="next-call-card">
+          <h3>🎯 Antrian Berikutnya</h3>
+          <div class="ticket-display">
+            <div class="ticket-num" id="nextNum">–</div>
+            <div class="ticket-detail">
+              <strong id="nextName">–</strong>
+              <span id="nextService">–</span>
+            </div>
+          </div>
+          <button class="call-btn" onclick="panggilAntrian()">
+            📢 Panggil Sekarang
+          </button>
+        </div>
+
+        <!-- RINGKASAN STATUS -->
+        <div class="summary-card">
+          <h3>📊 Ringkasan Status Hari Ini</h3>
+          <div class="summary-list">
+            <div class="summary-item">
+              <span class="label">
+                <span class="dot" style="background:var(--warning)"></span>
+                Menunggu
+              </span>
+              <span class="value" id="sumMenunggu">3</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">
+                <span class="dot" style="background:var(--info)"></span>
+                Sedang Diproses
+              </span>
+              <span class="value" id="sumProses">3</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">
+                <span class="dot" style="background:var(--success)"></span>
+                Selesai
+              </span>
+              <span class="value" id="sumSelesai">2</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">
+                <span class="dot" style="background:#5E35B1"></span>
+                Sudah Diambil
+              </span>
+              <span class="value" id="sumDiambil">0</span>
+            </div>
+            <div class="summary-item" style="background:var(--primary-light); border-color:rgba(30,136,229,.25);">
+              <span class="label" style="font-weight:700; color:var(--primary-dark);">
+                <span class="dot" style="background:var(--primary)"></span>
+                Total Hari Ini
+              </span>
+              <span class="value" style="color:var(--primary)" id="sumTotal">8</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════
+       MODAL TAMBAH ANTRIAN
+  ═══════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🎫 Tambah Antrian Baru</h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Pelanggan</label>
+            <input type="text" id="formNama" placeholder="Cth: Budi Santoso" />
+          </div>
+          <div class="form-group">
+            <label>No. Telepon</label>
+            <input type="tel" id="formTelp" placeholder="08xx-xxxx-xxxx" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Jenis Layanan</label>
+            <select id="formLayanan">
+              <option value="Reguler">👕 Reguler (3 hari)</option>
+              <option value="Express">⚡ Express (1 hari)</option>
+              <option value="Kiloan">⚖️ Kiloan</option>
+              <option value="Premium">👑 Premium (dry clean)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Berat (kg)</label>
+            <input type="number" id="formBerat" placeholder="Cth: 3.5" min="0.5" step="0.5" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Catatan Tambahan</label>
+          <textarea id="formCatatan" rows="2" placeholder="Cth: ada noda membandel, pakaian putih…" style="resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="tambahAntrian()">🎫 Daftarkan Antrian</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">Berhasil!</span>
+  </div>
+
+  <!-- ═══════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════ -->
+  <script>
+    // ── DATA ANTRIAN ──
+    let queueData = [
+      { id: 'A001', nama: 'Siti Rahma',     telp: '0812-3456-7890', layanan: 'Reguler', berat: 3.0, masuk: '07:30', estSelesai: '10-06-25', status: 'diproses', progress: 65 },
+      { id: 'A002', nama: 'Budi Santoso',   telp: '0813-2233-4455', layanan: 'Express', berat: 2.5, masuk: '07:45', estSelesai: '09-06-25', status: 'selesai',  progress: 100 },
+      { id: 'A003', nama: 'Dewi Lestari',   telp: '0821-9988-7766', layanan: 'Kiloan',  berat: 5.0, masuk: '08:00', estSelesai: '11-06-25', status: 'menunggu', progress: 0   },
+      { id: 'A004', nama: 'Rudi Hartono',   telp: '0811-5544-3322', layanan: 'Premium', berat: 1.5, masuk: '08:15', estSelesai: '12-06-25', status: 'menunggu', progress: 0   },
+      { id: 'A005', nama: 'Ani Wijayanti',  telp: '0822-6677-8899', layanan: 'Reguler', berat: 4.0, masuk: '08:30', estSelesai: '11-06-25', status: 'diproses', progress: 40  },
+      { id: 'A006', nama: 'Hendra Kusuma',  telp: '0817-4433-2211', layanan: 'Express', berat: 2.0, masuk: '08:45', estSelesai: '09-06-25', status: 'selesai',  progress: 100 },
+      { id: 'A007', nama: 'Fitri Handayani',telp: '0819-1122-3344', layanan: 'Kiloan',  berat: 6.5, masuk: '09:00', estSelesai: '12-06-25', status: 'menunggu', progress: 0   },
+      { id: 'A008', nama: 'Eko Prasetyo',   telp: '0818-9900-1122', layanan: 'Reguler', berat: 3.5, masuk: '09:15', estSelesai: '11-06-25', status: 'diproses', progress: 20  },
+    ];
+
+    let counterAntrian = 9;
+
+    // ── RENDER TABLE ──
+    function renderTable(data) {
+      const tbody = document.getElementById('queueBody');
+      const empty = document.getElementById('emptyState');
+      const info  = document.getElementById('tableInfo');
+
+      tbody.innerHTML = '';
+
+      if (data.length === 0) {
+        empty.style.display = 'block';
+        info.textContent = 'Tidak ada data ditemukan';
+        return;
+      }
+      empty.style.display = 'none';
+      info.textContent = `Menampilkan ${data.length} dari ${queueData.length} antrian`;
+
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.id = 'row-' + row.id;
+        tr.innerHTML = `
+          <td>
+            <div class="queue-number">${row.id}</div>
+          </td>
+          <td>
+            <div class="customer-info">
+              <strong>${row.nama}</strong>
+              <span>📞 ${row.telp}</span>
+            </div>
+          </td>
+          <td><span class="service-tag">${getLayananIcon(row.layanan)} ${row.layanan}</span></td>
+          <td style="font-weight:600;">${row.berat} kg</td>
+          <td style="color:var(--text-muted);">${row.masuk}</td>
+          <td style="color:var(--text-muted);">${row.estSelesai}</td>
+          <td>${getBadge(row.status)}</td>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:3px;">
+              <div class="progress-bar"><div class="progress-fill" style="width:${row.progress}%"></div></div>
+              <span style="font-size:.7rem; color:var(--text-muted);">${row.progress}%</span>
+            </div>
+          </td>
+          <td>
+            <div class="action-group">
+              <button class="action-btn edit" title="Edit" onclick="editRow('${row.id}')">✏️</button>
+              <button class="action-btn call" title="Panggil" onclick="panggilBaris('${row.id}')">📢</button>
+              <button class="action-btn done" title="Tandai Selesai" onclick="tandaiSelesai('${row.id}')">✅</button>
+              <button class="action-btn del"  title="Hapus" onclick="hapusAntrian('${row.id}')">🗑️</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      updateNextCall();
+      updateSummary();
+    }
+
+    function getLayananIcon(l) {
+      const map = { Reguler:'👕', Express:'⚡', Kiloan:'⚖️', Premium:'👑' };
+      return map[l] || '🧺';
+    }
+
+    function getBadge(status) {
+      const map = {
+        menunggu: '<span class="badge badge-waiting">⏳ Menunggu</span>',
+        diproses: '<span class="badge badge-process">⚙️ Diproses</span>',
+        selesai:  '<span class="badge badge-done">✅ Selesai</span>',
+        diambil:  '<span class="badge badge-taken">📦 Diambil</span>',
+      };
+      return map[status] || status;
+    }
+
+    // ── FILTER ──
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const st = document.getElementById('filterStatus').value;
+      const lv = document.getElementById('filterLayanan').value;
+
+      const filtered = queueData.filter(r => {
+        const matchSearch  = r.nama.toLowerCase().includes(q) || r.id.toLowerCase().includes(q);
+        const matchStatus  = st ? r.status === st : true;
+        const matchLayanan = lv ? r.layanan === lv : true;
+        return matchSearch && matchStatus && matchLayanan;
+      });
+
+      renderTable(filtered);
+    }
+
+    // ── NEXT CALL ──
+    function updateNextCall() {
+      const next = queueData.find(r => r.status === 'menunggu');
+      document.getElementById('nextNum').textContent  = next ? next.id : '–';
+      document.getElementById('nextName').textContent    = next ? next.nama : 'Tidak ada antrian';
+      document.getElementById('nextService').textContent = next ? `${getLayananIcon(next.layanan)} ${next.layanan} · ${next.berat} kg` : '–';
+    }
+
+    // ── SUMMARY ──
+    function updateSummary() {
+      const m = queueData.filter(r => r.status === 'menunggu').length;
+      const p = queueData.filter(r => r.status === 'diproses').length;
+      const s = queueData.filter(r => r.status === 'selesai').length;
+      const d = queueData.filter(r => r.status === 'diambil').length;
+      const t = queueData.length;
+
+      document.getElementById('sumMenunggu').textContent = m;
+      document.getElementById('sumProses').textContent   = p;
+      document.getElementById('sumSelesai').textContent  = s;
+      document.getElementById('sumDiambil').textContent  = d;
+      document.getElementById('sumTotal').textContent    = t;
+
+      document.getElementById('statTotal').textContent    = t;
+      document.getElementById('statMenunggu').textContent = m;
+      document.getElementById('statProses').textContent   = p;
+      document.getElementById('statSelesai').textContent  = s;
+
+      document.getElementById('sidebarBadge').textContent = t;
+    }
+
+    // ── PANGGIL ANTRIAN (NEXT) ──
+    function panggilAntrian() {
+      const next = queueData.find(r => r.status === 'menunggu');
+      if (!next) { showToast('⚠️', 'Tidak ada antrian menunggu!', '#FB8C00'); return; }
+      next.status   = 'diproses';
+      next.progress = 10;
+      renderTable(queueData);
+      showToast('📢', `Antrian ${next.id} - ${next.nama} dipanggil!`, 'var(--info)');
+    }
+
+    // ── PANGGIL BARIS TERTENTU ──
+    function panggilBaris(id) {
+      const item = queueData.find(r => r.id === id);
+      if (!item) return;
+      if (item.status !== 'menunggu') { showToast('ℹ️', 'Antrian ini sedang diproses atau sudah selesai.', '#FB8C00'); return; }
+      item.status   = 'diproses';
+      item.progress = 10;
+      renderTable(queueData);
+      showToast('📢', `Antrian ${item.id} - ${item.nama} dipanggil!`, 'var(--info)');
+    }
+
+    // ── TANDAI SELESAI ──
+    function tandaiSelesai(id) {
+      const item = queueData.find(r => r.id === id);
+      if (!item) return;
+      item.status   = 'selesai';
+      item.progress = 100;
+      renderTable(queueData);
+      showToast('✅', `Antrian ${item.id} - ${item.nama} ditandai selesai!`, 'var(--success)');
+    }
+
+    // ── HAPUS ANTRIAN ──
+    function hapusAntrian(id) {
+      if (!confirm(`Yakin ingin menghapus antrian ${id}?`)) return;
+      queueData = queueData.filter(r => r.id !== id);
+      renderTable(queueData);
+      showToast('🗑️', `Antrian ${id} dihapus.`, 'var(--danger)');
+    }
+
+    // ── EDIT (placeholder) ──
+    function editRow(id) {
+      showToast('✏️', `Fitur edit untuk antrian ${id} akan segera hadir.`, 'var(--warning)');
+    }
+
+    // ── MODAL ──
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.getElementById('formNama').value     = '';
+      document.getElementById('formTelp').value     = '';
+      document.getElementById('formBerat').value    = '';
+      document.getElementById('formCatatan').value  = '';
+    }
+
+    function closeModalOutside(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    }
+
+    // ── TAMBAH ANTRIAN ──
+    function tambahAntrian() {
+      const nama    = document.getElementById('formNama').value.trim();
+      const telp    = document.getElementById('formTelp').value.trim();
+      const layanan = document.getElementById('formLayanan').value;
+      const berat   = parseFloat(document.getElementById('formBerat').value);
+
+      if (!nama || !telp || isNaN(berat) || berat <= 0) {
+        showToast('⚠️', 'Harap isi semua field dengan benar!', '#FB8C00');
+        return;
+      }
+
+      const id = 'A' + String(counterAntrian).padStart(3, '0');
+      counterAntrian++;
+
+      const now = new Date();
+      const jam = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+      const estHari = layanan === 'Express' ? 1 : layanan === 'Reguler' ? 3 : layanan === 'Kiloan' ? 2 : 5;
+      const estDate = new Date(now); estDate.setDate(estDate.getDate() + estHari);
+      const dd = estDate.getDate().toString().padStart(2,'0');
+      const mm = (estDate.getMonth()+1).toString().padStart(2,'0');
+      const yy = String(estDate.getFullYear()).slice(-2);
+
+      queueData.push({
+        id, nama, telp, layanan, berat,
+        masuk: jam,
+        estSelesai: `${dd}-${mm}-${yy}`,
+        status: 'menunggu',
+        progress: 0
+      });
+
+      closeModal();
+      renderTable(queueData);
+      showToast('🎫', `Antrian ${id} - ${nama} berhasil didaftarkan!`, 'var(--success)');
+    }
+
+    // ── REFRESH DATA ──
+    function refreshData() {
+      showToast('🔄', 'Data antrian diperbarui!', 'var(--primary)');
+      updateLastUpdate();
+    }
+
+    // ── CETAK ──
+    function cetakAntrian() {
+      window.print();
+    }
+
+    // ── TOAST ──
+    function showToast(icon, msg, color) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastIcon').textContent = icon;
+      document.getElementById('toastMsg').textContent  = msg;
+      toast.style.background = color || 'var(--success)';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    // ── LAST UPDATE ──
+    function updateLastUpdate() {
+      const now = new Date();
+      document.getElementById('lastUpdate').textContent =
+        now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ── INIT ──
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTable(queueData);
+      updateLastUpdate();
+
+      // ESC to close modal
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+  </script>
+
+</body>
+</html>
